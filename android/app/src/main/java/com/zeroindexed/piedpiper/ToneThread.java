@@ -17,7 +17,7 @@ public class ToneThread extends Thread {
     }
 
     static final int sample_rate = 44100;
-    static final float duration = 1f;
+    static final float duration = 0.125f;
     static final int sample_size = Math.round(duration * sample_rate);
 
     final ToneIterator frequencies;
@@ -40,7 +40,7 @@ public class ToneThread extends Thread {
                 AudioTrack.MODE_STREAM
         );
 
-        final int total_samples = frequencies.size() * sample_rate;
+        final int total_samples = Math.round(frequencies.size() * sample_size);
 
         track.setPlaybackPositionUpdateListener(new AudioTrack.OnPlaybackPositionUpdateListener() {
             @Override
