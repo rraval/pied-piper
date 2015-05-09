@@ -9,6 +9,13 @@
         android:orientation="vertical">
 
         <Button
+            android:id="@+id/encode"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_centerInParent="true"
+            android:text="Encode" />
+
+        <Button
             android:id="@+id/play_tone"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"

@@ -2,8 +2,12 @@ package com.zeroindexed.piedpiper;
 
 import android.os.Bundle;
 import android.support.v7.app.ActionBarActivity;
+import android.util.Log;
 import android.view.View;
 import android.widget.ProgressBar;
+
+import com.casualcoding.reedsolomon.EncoderDecoder;
+import com.google.zxing.common.reedsolomon.Util;
 
 
 public class MainActivity extends ActionBarActivity implements ToneThread.ToneCallback {
@@ -22,6 +26,21 @@ public class MainActivity extends ActionBarActivity implements ToneThread.ToneCa
             public void onClick(View v) {
                 play_tone.setEnabled(false);
                 new ToneThread(new float[]{1024, 2048, 1024, 2048, 1024, 2048}, MainActivity.this).start();
+            }
+        });
+
+        findViewById(R.id.encode).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                try {
+                    EncoderDecoder enc = new EncoderDecoder();
+                    String message = new String("EncoderDecoder Example");
+                    byte[] data = message.getBytes();
+                    byte[] encoded_data = enc.encodeData(data, 5);
+                    Log.i("DEBUG", "encoded: " + Util.toHex(encoded_data));
+                } catch (EncoderDecoder.DataTooLargeException e) {
+                    Log.e("DEBUG", "data too large", e);
+                }
             }
         });
     }
