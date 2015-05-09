@@ -1,3 +1,5 @@
+from __future__ import print_function
+
 import alsaaudio
 import numpy as np
 import sys
@@ -98,30 +100,17 @@ def decode_file(input_file, speed):
         input_file = mono
     wav.close()
 
-    freqs = []
-    started = False
+    offset = 0
     for frame_rate, chunk in yield_chunks(input_file, speed / 2):
         dom = dominant(frame_rate, chunk)
-        if match(dom, HANDSHAKE_END_HZ):
-            started = False
-        elif started:
-            freqs.append(dom)
-        elif match(dom, HANDSHAKE_START_HZ):
-            started = True
-
-    return extract_packet(freqs)
+        print("{} => {}".format(offset, dom))
+        offset += 1
 
 def extract_packet(freqs):
     freqs = freqs[::2]
     bit_chunks = [int(round((f - START_HZ) / STEP_HZ)) for f in freqs]
     bit_chunks = [c for c in bit_chunks if 0 <= c < (2 ** BITS)]
-    byte_stream = bytearray(decode_bitchunks(BITS, bit_chunks))
-
-    try:
-        return RSCodec(FEC_BYTES).decode(byte_stream)
-    except ReedSolomonError as e:
-        print e
-        return bytearray()
+    return bytearray(decode_bitchunks(BITS, bit_chunks))
 
 def listen_linux(frame_rate=44100, interval=0.1):
     mic = alsaaudio.PCM(alsaaudio.PCM_CAPTURE, alsaaudio.PCM_NORMAL)
@@ -144,10 +133,14 @@ def listen_linux(frame_rate=44100, interval=0.1):
         dom = dominant(frame_rate, chunk)
 
         if in_packet and match(dom, HANDSHAKE_END_HZ):
-            out = extract_packet(packet)
-            if len(out):
-                print map(int, out)
+            byte_stream = extract_packet(packet)
+
+            try:
+                byte_stream = RSCodec(FEC_BYTES).decode(byte_stream)
+                print(map(int, out))
                 assert map(int, out) == [13, 56, 81, 89, 107, 19, 251]
+            except ReedSolomonError as e:
+                print("{}: {}".format(e, byte_stream))
 
             packet = []
             in_packet = False
@@ -157,5 +150,5 @@ def listen_linux(frame_rate=44100, interval=0.1):
             in_packet = True
 
 if __name__ == '__main__':
-    #print decode_file(sys.argv[1], float(sys.argv[2]))
+    #decode_file(sys.argv[1], float(sys.argv[2]))
     listen_linux()
