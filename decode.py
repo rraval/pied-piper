@@ -8,6 +8,11 @@ import wave
 from cStringIO import StringIO
 from reedsolo import RSCodec, ReedSolomonError
 
+from termcolor import cprint
+from pyfiglet import figlet_format
+import colorama
+colorama.init(strip=not sys.stdout.isatty())
+
 HANDSHAKE_START_HZ = 8192
 HANDSHAKE_END_HZ = 8192 + 512
 
@@ -112,6 +117,9 @@ def extract_packet(freqs):
     bit_chunks = [c for c in bit_chunks if 0 <= c < (2 ** BITS)]
     return bytearray(decode_bitchunks(BITS, bit_chunks))
 
+def display(s):
+    cprint(figlet_format(s.replace(' ', '   '), font='doom'), 'yellow')
+
 def listen_linux(frame_rate=44100, interval=0.1):
     mic = alsaaudio.PCM(alsaaudio.PCM_CAPTURE, alsaaudio.PCM_NORMAL)
     mic.setchannels(1)
@@ -137,7 +145,8 @@ def listen_linux(frame_rate=44100, interval=0.1):
 
             try:
                 byte_stream = RSCodec(FEC_BYTES).decode(byte_stream)
-                print(byte_stream)
+                display(str(byte_stream))
+                display("")
             except ReedSolomonError as e:
                 print("{}: {}".format(e, byte_stream))
 
