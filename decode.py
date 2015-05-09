@@ -10,10 +10,10 @@ HANDSHAKE_START_HZ = 8192
 HANDSHAKE_END_HZ = 8192 + 512
 
 START_HZ = 1024
-STEP_HZ = 256
-BITS = 4
+STEP_HZ = 16
+BITS = 8
 
-FEC_BYTES = 1
+FEC_BYTES = 2
 
 def stereo_to_mono(input_file, output_file):
     inp = wave.open(input_file, 'r')
@@ -147,7 +147,7 @@ def listen_linux(frame_rate=44100, interval=0.125):
             out = extract_packet(packet)
             if len(out):
                 assert map(int, out) == [13, 56, 81, 89, 107, 19, 251]
-                print repr(out)
+                print map(int, out)
 
             packet = []
             in_packet = False

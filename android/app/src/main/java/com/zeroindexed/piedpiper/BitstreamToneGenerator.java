@@ -7,8 +7,8 @@ import java.util.Iterator;
 
 public class BitstreamToneGenerator implements ToneThread.ToneIterator {
     final static int START_HZ = 1024;
-    final static int STEP_HZ = 256;
-    final static int BITS = 4;
+    final static int STEP_HZ = 16;
+    final static int BITS = 8;
 
     final static int HANDSHAKE_START_HZ = 8192;
     final static int HANDSHAKE_END_HZ = 8192 + 512;
@@ -50,7 +50,7 @@ public class BitstreamToneGenerator implements ToneThread.ToneIterator {
                 }
 
                 Integer step = bits_iterator.next();
-                Log.e("DEBUG", "nibble: " + step + ", hz: " + (START_HZ + step * STEP_HZ));
+                Log.e("DEBUG", "chunk: " + step + ", hz: " + (START_HZ + step * STEP_HZ));
                 return START_HZ + step * STEP_HZ;
             }
 

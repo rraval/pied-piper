@@ -25,7 +25,7 @@ import java.io.IOException;
 
 public class MainActivity extends ActionBarActivity implements ToneThread.ToneCallback {
     static final int REQUEST_IMAGE_CAPTURE = 1;
-    static final int FEC_BYTES = 1;
+    static final int FEC_BYTES = 2;
 
     ImageView picture_preview;
     View play_tone;
