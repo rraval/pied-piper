@@ -9,6 +9,7 @@ import android.provider.MediaStore;
 import android.support.v7.app.ActionBarActivity;
 import android.util.Log;
 import android.view.View;
+import android.widget.ImageView;
 import android.widget.ProgressBar;
 
 import com.casualcoding.reedsolomon.EncoderDecoder;
@@ -24,6 +25,7 @@ import java.io.IOException;
 public class MainActivity extends ActionBarActivity implements ToneThread.ToneCallback {
     static final int REQUEST_IMAGE_CAPTURE = 1;
 
+    ImageView picture_preview;
     View play_tone;
     ProgressBar progress;
 
@@ -31,6 +33,17 @@ public class MainActivity extends ActionBarActivity implements ToneThread.ToneCa
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        findViewById(R.id.take_picture).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+                if (intent.resolveActivity(getPackageManager()) != null) {
+                    startActivityForResult(intent, REQUEST_IMAGE_CAPTURE);
+                }
+            }
+        });
+        picture_preview = (ImageView) findViewById(R.id.picture_preview);
 
         play_tone = findViewById(R.id.play_tone);
         progress = (ProgressBar) findViewById(R.id.progress);
@@ -61,16 +74,6 @@ public class MainActivity extends ActionBarActivity implements ToneThread.ToneCa
                 }
             }
         });
-
-        findViewById(R.id.take_picture).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-                if (intent.resolveActivity(getPackageManager()) != null) {
-                    startActivityForResult(intent, REQUEST_IMAGE_CAPTURE);
-                }
-            }
-        });
     }
 
     @Override
@@ -90,8 +93,9 @@ public class MainActivity extends ActionBarActivity implements ToneThread.ToneCa
         if (requestCode == REQUEST_IMAGE_CAPTURE && resultCode == RESULT_OK) {
             Bundle extras = data.getExtras();
             final Bitmap bm = (Bitmap) extras.get("data");
-            final File dir = MainActivity.this.getExternalFilesDir(Environment.DIRECTORY_PICTURES);
+            picture_preview.setImageBitmap(bm);
 
+            final File dir = MainActivity.this.getExternalFilesDir(Environment.DIRECTORY_PICTURES);
             Log.i("DEBUG", "got bitmap: " + bm.getWidth() + "x" + bm.getHeight());
             new AsyncTask<Void, Void, Void>() {
                 @Override
