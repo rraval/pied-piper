@@ -12,8 +12,8 @@ import android.view.View;
 
 public class MainActivity extends ActionBarActivity {
     static final int sample_rate = 44100;
-    static final int duration = 1;
-    static final int sample_size = duration * sample_rate;
+    static final float duration = 0.125f;
+    static final int sample_size = Math.round(duration * sample_rate);
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -23,8 +23,6 @@ public class MainActivity extends ActionBarActivity {
         findViewById(R.id.play_tone).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-
-
                 new Thread() {
                     @Override
                     public void run() {
