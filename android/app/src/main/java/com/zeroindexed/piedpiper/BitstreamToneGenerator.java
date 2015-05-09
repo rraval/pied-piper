@@ -1,5 +1,7 @@
 package com.zeroindexed.piedpiper;
 
+import android.util.Log;
+
 import java.io.InputStream;
 import java.util.Iterator;
 
@@ -48,6 +50,7 @@ public class BitstreamToneGenerator implements ToneThread.ToneIterator {
                 }
 
                 Integer step = bits_iterator.next();
+                Log.e("DEBUG", "nibble: " + step + ", hz: " + (START_HZ + step * STEP_HZ));
                 return START_HZ + step * STEP_HZ;
             }
 
