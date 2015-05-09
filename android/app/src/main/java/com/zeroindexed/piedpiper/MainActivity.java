@@ -40,12 +40,10 @@ public class MainActivity extends ActionBarActivity implements ToneThread.ToneCa
                 ByteArrayInputStream bis = new ByteArrayInputStream(new byte[]{
                         13, 56, 81, 89, 107, 19, (byte) 251,
                 });
-                for (int bit_chunk : new BitstreamIterator(bis, 5)) {
-                    Log.i("DEBUG", "chunk: " + bit_chunk);
-                }
 
                 play_tone.setEnabled(false);
-                new ToneThread(new float[]{1024, 2048, 1024, 2048, 1024, 2048}, MainActivity.this).start();
+                ToneThread.ToneIterator tone = new BitstreamToneGenerator(bis, 7);
+                new ToneThread(tone, MainActivity.this).start();
             }
         });
 

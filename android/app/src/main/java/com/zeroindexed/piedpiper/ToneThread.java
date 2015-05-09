@@ -12,14 +12,18 @@ public class ToneThread extends Thread {
         public void onDone();
     }
 
+    public interface ToneIterator extends Iterable<Integer> {
+        public int size();
+    }
+
     static final int sample_rate = 44100;
     static final float duration = 1f;
     static final int sample_size = Math.round(duration * sample_rate);
 
-    final float[] frequencies;
+    final ToneIterator frequencies;
     final ToneCallback callback;
 
-    public ToneThread(float[] frequencies, ToneCallback callback) {
+    public ToneThread(ToneIterator frequencies, ToneCallback callback) {
         this.frequencies = frequencies;
         this.callback = callback;
         setPriority(Thread.MAX_PRIORITY);
@@ -36,7 +40,7 @@ public class ToneThread extends Thread {
                 AudioTrack.MODE_STREAM
         );
 
-        final int total_samples = frequencies.length * sample_rate;
+        final int total_samples = frequencies.size() * sample_rate;
 
         track.setPlaybackPositionUpdateListener(new AudioTrack.OnPlaybackPositionUpdateListener() {
             @Override
@@ -53,7 +57,7 @@ public class ToneThread extends Thread {
 
         track.play();
 
-        for (float freq : frequencies) {
+        for (int freq : frequencies) {
             short[] samples = generate(freq);
             track.write(samples, 0, samples.length);
         }
