@@ -123,7 +123,7 @@ def extract_packet(freqs):
         print e
         return bytearray()
 
-def listen_linux(frame_rate=44100, interval=0.125):
+def listen_linux(frame_rate=44100, interval=0.1):
     mic = alsaaudio.PCM(alsaaudio.PCM_CAPTURE, alsaaudio.PCM_NORMAL)
     mic.setchannels(1)
     mic.setrate(44100)
@@ -146,8 +146,8 @@ def listen_linux(frame_rate=44100, interval=0.125):
         if in_packet and match(dom, HANDSHAKE_END_HZ):
             out = extract_packet(packet)
             if len(out):
-                assert map(int, out) == [13, 56, 81, 89, 107, 19, 251]
                 print map(int, out)
+                assert map(int, out) == [13, 56, 81, 89, 107, 19, 251]
 
             packet = []
             in_packet = False

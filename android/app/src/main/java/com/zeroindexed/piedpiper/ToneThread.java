@@ -17,7 +17,7 @@ public class ToneThread extends Thread {
     }
 
     static final int sample_rate = 44100;
-    static final float duration = 0.125f;
+    static final float duration = 0.1f;
     static final int sample_size = Math.round(duration * sample_rate);
 
     final ToneIterator frequencies;
