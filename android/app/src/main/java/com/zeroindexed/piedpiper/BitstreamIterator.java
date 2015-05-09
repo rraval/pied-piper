@@ -65,7 +65,7 @@ public class BitstreamIterator implements Iterable<Integer> {
                     }
                 }
 
-                Log.i("BitStream", "yield -> " + out);
+                //Log.i("BitStream", "yield -> " + out);
                 return out;
             }
 
