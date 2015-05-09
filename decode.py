@@ -1,19 +1,22 @@
 from __future__ import print_function
 
 import alsaaudio
+import heapq
 import numpy as np
 import sys
 import wave
 
 from cStringIO import StringIO
 from reedsolo import RSCodec, ReedSolomonError
+from pprint import pprint
 
 HANDSHAKE_START_HZ = 8192
 HANDSHAKE_END_HZ = 8192 + 512
 
 START_HZ = 1024
-STEP_HZ = 16
-BITS = 8
+STEP_HZ = 256
+BITS = 4
+FREQ_CONCURRENT = 2
 
 FEC_BYTES = 2
 
@@ -53,9 +56,11 @@ def dominant(frame_rate, chunk):
     w = np.fft.fft(chunk)
     freqs = np.fft.fftfreq(len(chunk))
 
-    peak_coeff = np.argmax(np.abs(w))
-    peak_freq = freqs[peak_coeff]
-    return abs(peak_freq * frame_rate) # in Hz
+    coeffs = np.abs(w)
+    peak_coeffs = coeffs.argsort()[-10:][::-1]
+    #peak_coeffs = heapq.nlargest(FREQ_CONCURRENT, range(len(coeffs)), coeffs.take)
+    peak_freqs = [(c, abs(freqs[c] * frame_rate)) for c in peak_coeffs]
+    return peak_freqs
 
 def match(freq1, freq2):
     return abs(freq1 - freq2) < 20
@@ -132,7 +137,11 @@ def listen_linux(frame_rate=44100, interval=0.1):
         chunk = np.fromstring(data, dtype=np.int16)
         dom = dominant(frame_rate, chunk)
 
-        if in_packet and match(dom, HANDSHAKE_END_HZ):
+        if in_packet and match(dom[0][1], HANDSHAKE_END_HZ):
+            packet = packet[::2]
+            pprint(packet)
+
+            """
             byte_stream = extract_packet(packet)
 
             try:
@@ -141,12 +150,13 @@ def listen_linux(frame_rate=44100, interval=0.1):
                 assert map(int, out) == [13, 56, 81, 89, 107, 19, 251]
             except ReedSolomonError as e:
                 print("{}: {}".format(e, byte_stream))
+            """
 
             packet = []
             in_packet = False
         elif in_packet:
             packet.append(dom)
-        elif match(dom, HANDSHAKE_START_HZ):
+        elif match(dom[0][1], HANDSHAKE_START_HZ):
             in_packet = True
 
 if __name__ == '__main__':
