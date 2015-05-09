@@ -8,6 +8,9 @@ public class BitstreamToneGenerator implements ToneThread.ToneIterator {
     final static int STEP_HZ = 256;
     final static int BITS = 4;
 
+    final static int HANDSHAKE_START_HZ = 8192;
+    final static int HANDSHAKE_END_HZ = 8192 + 512;
+
     final int file_size;
     final InputStream stream;
 
@@ -20,13 +23,30 @@ public class BitstreamToneGenerator implements ToneThread.ToneIterator {
     public Iterator<Integer> iterator() {
         final Iterator<Integer> bits_iterator = new BitstreamIterator(stream, BITS).iterator();
         return new Iterator<Integer>() {
+            boolean yield_start = false;
+            boolean yield_end = false;
+
             @Override
             public boolean hasNext() {
+                if (!yield_start || !yield_end) {
+                    return true;
+                }
+
                 return bits_iterator.hasNext();
             }
 
             @Override
             public Integer next() {
+                if (!yield_start) {
+                    yield_start = true;
+                    return HANDSHAKE_START_HZ;
+                }
+
+                if (!yield_end && !bits_iterator.hasNext()) {
+                    yield_end = true;
+                    return HANDSHAKE_END_HZ;
+                }
+
                 Integer step = bits_iterator.next();
                 return START_HZ + step * STEP_HZ;
             }
@@ -39,6 +59,7 @@ public class BitstreamToneGenerator implements ToneThread.ToneIterator {
 
     @Override
     public int size() {
-        return Math.round(file_size * ((float) Byte.SIZE) / BITS);
+        // +2 for handshake
+        return Math.round(file_size * ((float) Byte.SIZE) / BITS) + 2;
     }
 }
