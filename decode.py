@@ -137,10 +137,11 @@ def listen_linux(frame_rate=44100, interval=0.1):
 
             try:
                 byte_stream = RSCodec(FEC_BYTES).decode(byte_stream)
-                print(map(int, out))
-                assert map(int, out) == [13, 56, 81, 89, 107, 19, 251]
+                int_stream = [int(b) for b in byte_stream]
+                print(int_stream)
+                assert int_stream == [13, 56, 81, 89, 107, 19, 251]
             except ReedSolomonError as e:
-                print("{}: {}".format(e, byte_stream))
+                print("{}: {}".format(e, int_stream))
 
             packet = []
             in_packet = False
