@@ -14,6 +14,7 @@ import android.widget.ProgressBar;
 import com.casualcoding.reedsolomon.EncoderDecoder;
 import com.google.zxing.common.reedsolomon.Util;
 
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileDescriptor;
 import java.io.FileOutputStream;
@@ -36,6 +37,13 @@ public class MainActivity extends ActionBarActivity implements ToneThread.ToneCa
         play_tone.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                ByteArrayInputStream bis = new ByteArrayInputStream(new byte[]{
+                        13, 56, 81, 89, 107, 19, (byte) 251,
+                });
+                for (int bit_chunk : new BitstreamIterator(bis, 5)) {
+                    Log.i("DEBUG", "chunk: " + bit_chunk);
+                }
+
                 play_tone.setEnabled(false);
                 new ToneThread(new float[]{1024, 2048, 1024, 2048, 1024, 2048}, MainActivity.this).start();
             }
