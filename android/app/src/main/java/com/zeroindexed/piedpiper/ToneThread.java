@@ -12,7 +12,7 @@ public class ToneThread extends Thread {
         public void onDone();
     }
 
-    public interface ToneIterator extends Iterable<Integer> {
+    public interface ToneIterator extends Iterable<Integer[]> {
         public int size();
     }
 
@@ -63,21 +63,34 @@ public class ToneThread extends Thread {
 
         track.play();
 
-        for (int freq : frequencies) {
-            short[] samples = generate(freq);
-            track.write(samples, 0, samples.length);
+        for (Integer[] freq_chunk : frequencies) {
+            double[][] samples = new double[freq_chunk.length][];
+            for (int i = 0; i < freq_chunk.length; ++i) {
+                samples[i] = generate(freq_chunk[i]);
+            }
+
+            short[] merged_sample = new short[sample_size];
+            for (int i = 0; i < merged_sample.length; ++i) {
+                double s = 0;
+                for (int j = 0; j < freq_chunk.length; ++j) {
+                    s += samples[j][i];
+                }
+                merged_sample[i] = (short) ((s / freq_chunk.length) * Short.MAX_VALUE);
+            }
+
+            track.write(merged_sample, 0, merged_sample.length);
         }
 
         track.setNotificationMarkerPosition(sample_size);
     }
 
-    static short[] generate(float frequency) {
-        final short sample[] = new short[sample_size];
+    static double[] generate(float frequency) {
+        final double sample[] = new double[sample_size];
         final double increment = 2 * Math.PI * frequency / sample_rate;
 
         double angle = 0;
         for (int i = 0; i < sample.length; ++i) {
-            sample[i] = (short) (Math.sin(angle) * Short.MAX_VALUE);
+            sample[i] = Math.sin(angle);
             angle += increment;
         }
 

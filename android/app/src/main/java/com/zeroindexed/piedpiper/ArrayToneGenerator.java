@@ -2,19 +2,17 @@ package com.zeroindexed.piedpiper;
 
 import java.util.Iterator;
 
-public class ArrayToneGenerator implements ToneThread.ToneIterator {
+public class ArrayToneGenerator /*implements ToneThread.ToneIterator*/ {
     final int[] frequencies;
 
     public ArrayToneGenerator(int[] frequencies) {
         this.frequencies = frequencies;
     }
 
-    @Override
     public int size() {
         return frequencies.length;
     }
 
-    @Override
     public Iterator<Integer> iterator() {
         return new Iterator<Integer>() {
             int i = 0;

@@ -3,15 +3,19 @@ package com.zeroindexed.piedpiper;
 import android.util.Log;
 
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.Iterator;
 
 public class BitstreamToneGenerator implements ToneThread.ToneIterator {
+    final static String TAG = BitstreamToneGenerator.class.getName();
+
     final static int START_HZ = 1024;
     final static int STEP_HZ = 16;
     final static int BITS = 8;
 
     final static int HANDSHAKE_START_HZ = 8192;
     final static int HANDSHAKE_END_HZ = 8192 + 512;
+    final static int FREQ_CONCURRENT = 2;
 
     final int file_size;
     final InputStream stream;
@@ -22,9 +26,9 @@ public class BitstreamToneGenerator implements ToneThread.ToneIterator {
     }
 
     @Override
-    public Iterator<Integer> iterator() {
+    public Iterator<Integer[]> iterator() {
         final Iterator<Integer> bits_iterator = new BitstreamIterator(stream, BITS).iterator();
-        return new Iterator<Integer>() {
+        return new Iterator<Integer[]>() {
             boolean yield_start = false;
             boolean yield_end = false;
 
@@ -38,20 +42,40 @@ public class BitstreamToneGenerator implements ToneThread.ToneIterator {
             }
 
             @Override
-            public Integer next() {
+            public Integer[] next() {
                 if (!yield_start) {
                     yield_start = true;
-                    return HANDSHAKE_START_HZ;
+                    Log.i(TAG, "packet start");
+                    return new Integer[] {HANDSHAKE_START_HZ};
                 }
 
                 if (!yield_end && !bits_iterator.hasNext()) {
                     yield_end = true;
-                    return HANDSHAKE_END_HZ;
+                    Log.i(TAG, "packet end");
+                    return new Integer[] {HANDSHAKE_END_HZ};
                 }
 
-                Integer step = bits_iterator.next();
-                Log.e("DEBUG", "chunk: " + step + ", hz: " + (START_HZ + step * STEP_HZ));
-                return START_HZ + step * STEP_HZ;
+                ArrayList<Integer> freq_chunk = new ArrayList<>();
+                StringBuffer sb = new StringBuffer("chunk:");
+
+                for (int i = 0; i < FREQ_CONCURRENT && bits_iterator.hasNext(); ++i) {
+                    Integer step = bits_iterator.next();
+                    Integer hz = START_HZ + step * STEP_HZ;
+                    freq_chunk.add(hz);
+                    sb.append(" ");
+                    sb.append(step);
+                    sb.append("[");
+                    sb.append(hz);
+                    sb.append(" hz]");
+                }
+                Log.i(TAG, sb.toString());
+
+                // because toArray() can't be cast to Integer[]?
+                Integer[] int_chunk = new Integer[freq_chunk.size()];
+                for (int i = 0; i < int_chunk.length; ++i) {
+                    int_chunk[i] = freq_chunk.get(i);
+                }
+                return int_chunk;
             }
 
             @Override
