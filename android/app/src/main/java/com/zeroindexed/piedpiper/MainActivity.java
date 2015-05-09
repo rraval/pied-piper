@@ -13,6 +13,7 @@ import android.widget.ImageView;
 import android.widget.ProgressBar;
 
 import com.casualcoding.reedsolomon.EncoderDecoder;
+import com.google.zxing.common.reedsolomon.ReedSolomonEncoder;
 import com.google.zxing.common.reedsolomon.Util;
 
 import java.io.ByteArrayInputStream;
@@ -24,6 +25,7 @@ import java.io.IOException;
 
 public class MainActivity extends ActionBarActivity implements ToneThread.ToneCallback {
     static final int REQUEST_IMAGE_CAPTURE = 1;
+    static final int FEC_BYTES = 1;
 
     ImageView picture_preview;
     View play_tone;
@@ -50,9 +52,19 @@ public class MainActivity extends ActionBarActivity implements ToneThread.ToneCa
         play_tone.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                ByteArrayInputStream bis = new ByteArrayInputStream(new byte[]{
+                byte[] payload = new byte[]{
                         13, 56, 81, 89, 107, 19, (byte) 251,
-                });
+                };
+
+                EncoderDecoder encoder = new EncoderDecoder();
+                final byte[] fec_payload;
+                try {
+                    fec_payload = encoder.encodeData(payload, FEC_BYTES);
+                } catch (EncoderDecoder.DataTooLargeException e) {
+                    return;
+                }
+
+                ByteArrayInputStream bis = new ByteArrayInputStream(fec_payload);
 
                 play_tone.setEnabled(false);
                 ToneThread.ToneIterator tone = new BitstreamToneGenerator(bis, 7);

@@ -1,9 +1,10 @@
 import alsaaudio
-import wave
 import numpy as np
 import sys
+import wave
 
 from cStringIO import StringIO
+from reedsolo import RSCodec, ReedSolomonError
 
 HANDSHAKE_START_HZ = 8192
 HANDSHAKE_END_HZ = 8192 + 512
@@ -11,6 +12,8 @@ HANDSHAKE_END_HZ = 8192 + 512
 START_HZ = 1024
 STEP_HZ = 256
 BITS = 4
+
+FEC_BYTES = 1
 
 def stereo_to_mono(input_file, output_file):
     inp = wave.open(input_file, 'r')
@@ -112,7 +115,13 @@ def extract_packet(freqs):
     freqs = freqs[::2]
     bit_chunks = [int(round((f - START_HZ) / STEP_HZ)) for f in freqs]
     bit_chunks = [c for c in bit_chunks if 0 <= c < (2 ** BITS)]
-    return decode_bitchunks(BITS, bit_chunks)
+    byte_stream = bytearray(decode_bitchunks(BITS, bit_chunks))
+
+    try:
+        return RSCodec(FEC_BYTES).decode(byte_stream)
+    except ReedSolomonError as e:
+        print e
+        return bytearray()
 
 def listen_linux(frame_rate=44100, interval=0.125):
     mic = alsaaudio.PCM(alsaaudio.PCM_CAPTURE, alsaaudio.PCM_NORMAL)
@@ -135,7 +144,11 @@ def listen_linux(frame_rate=44100, interval=0.125):
         dom = dominant(frame_rate, chunk)
 
         if in_packet and match(dom, HANDSHAKE_END_HZ):
-            print extract_packet(packet)
+            out = extract_packet(packet)
+            if len(out):
+                assert map(int, out) == [13, 56, 81, 89, 107, 19, 251]
+                print repr(out)
+
             packet = []
             in_packet = False
         elif in_packet:
