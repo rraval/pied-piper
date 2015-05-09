@@ -8,26 +8,11 @@
         android:layout_margin="20dip"
         android:orientation="vertical">
 
-        <Button
-            android:id="@+id/take_picture"
+        <EditText
+            android:id="@+id/text"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_centerInParent="true"
-            android:text="Take Picture" />
-
-        <ImageView
-            android:id="@+id/picture_preview"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:scaleType="centerInside"/>
-
-        <Button
-            android:id="@+id/encode"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_centerInParent="true"
-            android:layout_marginTop="10dip"
-            android:text="Encode" />
+            android:hint="Say Something"/>
 
         <Button
             android:id="@+id/play_tone"

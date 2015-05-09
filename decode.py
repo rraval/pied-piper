@@ -12,10 +12,10 @@ HANDSHAKE_START_HZ = 8192
 HANDSHAKE_END_HZ = 8192 + 512
 
 START_HZ = 1024
-STEP_HZ = 16
-BITS = 8
+STEP_HZ = 256
+BITS = 4
 
-FEC_BYTES = 2
+FEC_BYTES = 4
 
 def stereo_to_mono(input_file, output_file):
     inp = wave.open(input_file, 'r')
@@ -137,11 +137,9 @@ def listen_linux(frame_rate=44100, interval=0.1):
 
             try:
                 byte_stream = RSCodec(FEC_BYTES).decode(byte_stream)
-                int_stream = [int(b) for b in byte_stream]
-                print(int_stream)
-                assert int_stream == [13, 56, 81, 89, 107, 19, 251]
+                print(byte_stream)
             except ReedSolomonError as e:
-                print("{}: {}".format(e, int_stream))
+                print("{}: {}".format(e, byte_stream))
 
             packet = []
             in_packet = False
