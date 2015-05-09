@@ -4,6 +4,13 @@ import sys
 
 from cStringIO import StringIO
 
+HANDSHAKE_START_HZ = 8192
+HANDSHAKE_END_HZ = 8192 + 512
+
+START_HZ = 1024
+STEP_HZ = 256
+BITS = 4
+
 def stereo_to_mono(input_file, output_file):
     inp = wave.open(input_file, 'r')
     params = list(inp.getparams())
@@ -77,10 +84,7 @@ def decode_bitchunks(chunk_bits, chunks):
 
     return out_bytes
 
-if __name__ == '__main__':
-    input_file = sys.argv[1]
-    speed = float(sys.argv[2])
-
+def decode_file(input_file, speed):
     wav = wave.open(input_file)
     if wav.getnchannels() == 2:
         mono = StringIO()
@@ -94,14 +98,18 @@ if __name__ == '__main__':
     started = False
     for frame_rate, chunk in yield_chunks(input_file, speed / 2):
         dom = dominant(frame_rate, chunk)
-        if match(dom, 8704):
+        if match(dom, HANDSHAKE_END_HZ):
             started = False
         elif started:
             freqs.append(dom)
-        elif match(dom, 8192):
+        elif match(dom, HANDSHAKE_START_HZ):
             started = True
 
     freqs = freqs[::2]
-    bit_chunks = [int(round((f - 1024) / 256)) for f in freqs]
-    bit_chunks = [c for c in bit_chunks if 0 <= c < 16]
-    print decode_bitchunks(4, bit_chunks)
+    bit_chunks = [int(round((f - START_HZ) / STEP_HZ)) for f in freqs]
+    bit_chunks = [c for c in bit_chunks if 0 <= c < (2 ** BITS)]
+
+    return decode_bitchunks(BITS, bit_chunks)
+
+if __name__ == '__main__':
+    print decode_file(sys.argv[1], float(sys.argv[2]))
