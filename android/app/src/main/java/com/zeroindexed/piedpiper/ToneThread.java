@@ -22,6 +22,7 @@ public class ToneThread extends Thread {
 
     final ToneIterator frequencies;
     final ToneCallback callback;
+    boolean callback_done = false;
 
     public ToneThread(ToneIterator frequencies, ToneCallback callback) {
         this.frequencies = frequencies;
@@ -45,12 +46,17 @@ public class ToneThread extends Thread {
         track.setPlaybackPositionUpdateListener(new AudioTrack.OnPlaybackPositionUpdateListener() {
             @Override
             public void onMarkerReached(AudioTrack track) {
-                callback.onDone();
+                if (!callback_done) {
+                    callback.onDone();
+                    callback_done = true;
+                }
             }
 
             @Override
             public void onPeriodicNotification(AudioTrack track) {
-                callback.onProgress(track.getPlaybackHeadPosition(), total_samples);
+                if (!callback_done) {
+                    callback.onProgress(track.getPlaybackHeadPosition(), total_samples);
+                }
             }
         });
         track.setPositionNotificationPeriod(sample_rate / 10);
