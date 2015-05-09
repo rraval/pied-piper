@@ -44,8 +44,42 @@ def dominant(frame_rate, chunk):
     peak_freq = freqs[peak_coeff]
     return abs(peak_freq * frame_rate) # in Hz
 
+def match(freq1, freq2):
+    return abs(freq1 - freq2) < 20
+
+def decode_bitchunks(chunk_bits, chunks):
+    out_bytes = []
+
+    next_read_chunk = 0
+    next_read_bit = 0
+
+    byte = 0
+    bits_left = 8
+    while next_read_chunk < len(chunks):
+        can_fill = chunk_bits - next_read_bit
+        to_fill = min(bits_left, can_fill)
+        offset = chunk_bits - next_read_bit - to_fill
+
+        byte <<= to_fill
+        shifted = chunks[next_read_chunk] & (((1 << to_fill) - 1) << offset)
+        byte |= shifted >> offset;
+        bits_left -= to_fill
+        next_read_bit += to_fill
+
+        if bits_left <= 0:
+            out_bytes.append(byte)
+            byte = 0
+            bits_left = 8
+
+        if next_read_bit >= chunk_bits:
+            next_read_chunk += 1
+            next_read_bit -= chunk_bits
+
+    return out_bytes
+
 if __name__ == '__main__':
     input_file = sys.argv[1]
+    speed = float(sys.argv[2])
 
     wav = wave.open(input_file)
     if wav.getnchannels() == 2:
@@ -56,5 +90,18 @@ if __name__ == '__main__':
         input_file = mono
     wav.close()
 
-    for frame_rate, chunk in yield_chunks(input_file, 1):
-        print dominant(frame_rate, chunk)
+    freqs = []
+    started = False
+    for frame_rate, chunk in yield_chunks(input_file, speed / 2):
+        dom = dominant(frame_rate, chunk)
+        if match(dom, 8704):
+            started = False
+        elif started:
+            freqs.append(dom)
+        elif match(dom, 8192):
+            started = True
+
+    freqs = freqs[::2]
+    bit_chunks = [int(round((f - 1024) / 256)) for f in freqs]
+    bit_chunks = [c for c in bit_chunks if 0 <= c < 16]
+    print decode_bitchunks(4, bit_chunks)
