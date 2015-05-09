@@ -1,3 +1,4 @@
+import alsaaudio
 import wave
 import numpy as np
 import sys
@@ -105,11 +106,43 @@ def decode_file(input_file, speed):
         elif match(dom, HANDSHAKE_START_HZ):
             started = True
 
+    return extract_packet(freqs)
+
+def extract_packet(freqs):
     freqs = freqs[::2]
     bit_chunks = [int(round((f - START_HZ) / STEP_HZ)) for f in freqs]
     bit_chunks = [c for c in bit_chunks if 0 <= c < (2 ** BITS)]
-
     return decode_bitchunks(BITS, bit_chunks)
 
+def listen_linux(frame_rate=44100, interval=0.125):
+    mic = alsaaudio.PCM(alsaaudio.PCM_CAPTURE, alsaaudio.PCM_NORMAL)
+    mic.setchannels(1)
+    mic.setrate(44100)
+    mic.setformat(alsaaudio.PCM_FORMAT_S16_LE)
+
+    num_frames = int(round((interval / 2) * frame_rate))
+    mic.setperiodsize(num_frames)
+
+    in_packet = False
+    packet = []
+
+    while True:
+        l, data = mic.read()
+        if not l:
+            continue
+
+        chunk = np.fromstring(data, dtype=np.int16)
+        dom = dominant(frame_rate, chunk)
+
+        if in_packet and match(dom, HANDSHAKE_END_HZ):
+            print extract_packet(packet)
+            packet = []
+            in_packet = False
+        elif in_packet:
+            packet.append(dom)
+        elif match(dom, HANDSHAKE_START_HZ):
+            in_packet = True
+
 if __name__ == '__main__':
-    print decode_file(sys.argv[1], float(sys.argv[2]))
+    #print decode_file(sys.argv[1], float(sys.argv[2]))
+    listen_linux()
