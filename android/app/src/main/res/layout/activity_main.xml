@@ -9,10 +9,18 @@
         android:orientation="vertical">
 
         <Button
+            android:id="@+id/take_picture"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_centerInParent="true"
+            android:text="Take Picture" />
+
+        <Button
             android:id="@+id/encode"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_centerInParent="true"
+            android:layout_marginTop="10dip"
             android:text="Encode" />
 
         <Button
@@ -20,6 +28,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_centerInParent="true"
+            android:layout_marginTop="10dip"
             android:text="Play Tone" />
 
         <ProgressBar
