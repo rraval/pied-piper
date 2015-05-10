@@ -1,0 +1,6 @@
+colorama
+numpy
+pyalsaaudio
+pyfiglet
+reedsolo
+termcolor

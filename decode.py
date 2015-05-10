@@ -1,17 +1,17 @@
 from __future__ import print_function
 
-import alsaaudio
-import numpy as np
 import sys
 import wave
 
 from cStringIO import StringIO
-from reedsolo import RSCodec, ReedSolomonError
 
+import alsaaudio
+import colorama
+import numpy as np
+
+from reedsolo import RSCodec, ReedSolomonError
 from termcolor import cprint
 from pyfiglet import figlet_format
-import colorama
-colorama.init(strip=not sys.stdout.isatty())
 
 HANDSHAKE_START_HZ = 8192
 HANDSHAKE_END_HZ = 8192 + 512
@@ -158,5 +158,7 @@ def listen_linux(frame_rate=44100, interval=0.1):
             in_packet = True
 
 if __name__ == '__main__':
+    colorama.init(strip=not sys.stdout.isatty())
+
     #decode_file(sys.argv[1], float(sys.argv[2]))
     listen_linux()
