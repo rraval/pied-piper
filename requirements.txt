@@ -1,6 +1,14 @@
-colorama
-numpy
-pyalsaaudio
-pyfiglet
-reedsolo
-termcolor
+Install `als-devel` library on linux before anything :
+
+`sudo apt-get install libasound2-dev`
+
+You can install these packages by this command on linux with python-2.7:
+
+`sudo pip install package-name`
+
+* colorama
+* numpy
+* pyalsaaudio
+* pyfiglet
+* reedsolo
+* termcolor
